@@ -1,0 +1,129 @@
+name: Validate Plugin Submission
+
+on:
+  pull_request:
+    paths:
+      - 'plugins/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          # Get list of changed plugin files
+          git diff --name-only HEAD^ HEAD | grep '^plugins/' > changed_plugins.txt || true
+          if [ ! -s changed_plugins.txt ]; then
+            echo "No plugin files changed"
+            exit 0
+          fi
+          echo "Changed plugins:"
+          cat changed_plugins.txt
+
+      - name: Validate plugin format
+        run: |
+          for plugin_file in $(cat changed_plugins.txt); do
+            echo "Validating $plugin_file"
+
+            # Check file exists
+            if [ ! -f "$plugin_file" ]; then
+              echo "Error: $plugin_file does not exist"
+              exit 1
+            fi
+
+            # Read content (should be GitHub shorthand)
+            content=$(cat "$plugin_file" | tr -d '[:space:]')
+
+            if [ -z "$content" ]; then
+              echo "Error: $plugin_file is empty"
+              exit 1
+            fi
+
+            # Validate GitHub shorthand format (user/repo or user/repo@version)
+            if ! echo "$content" | grep -qE '^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+(@[a-zA-Z0-9._-]+)?$'; then
+              echo "Error: Invalid GitHub shorthand format in $plugin_file"
+              echo "Expected: user/repo or user/repo@version"
+              echo "Got: $content"
+              exit 1
+            fi
+
+            echo "✓ Format valid: $content"
+
+            # Extract user and repo
+            shorthand=$(echo "$content" | cut -d'@' -f1)
+            user=$(echo "$shorthand" | cut -d'/' -f1)
+            repo=$(echo "$shorthand" | cut -d'/' -f2)
+
+            echo "Checking GitHub repository: https://github.com/$user/$repo"
+
+            # Check if repository exists (using GitHub API)
+            response=$(curl -s -o /dev/null -w "%{http_code}" "https://api.github.com/repos/$user/$repo")
+            if [ "$response" != "200" ]; then
+              echo "Error: GitHub repository $user/$repo not found (HTTP $response)"
+              exit 1
+            fi
+
+            echo "✓ Repository exists"
+
+            # Check for releases
+            releases_response=$(curl -s "https://api.github.com/repos/$user/$repo/releases/latest")
+            if echo "$releases_response" | grep -q '"message": "Not Found"'; then
+              echo "Warning: No releases found for $user/$repo"
+              echo "Plugin authors must create GitHub releases with platform-specific assets"
+              exit 1
+            fi
+
+            echo "✓ Repository has releases"
+
+            # Validate release asset naming (check for at least one platform)
+            release_tag=$(echo "$releases_response" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
+            echo "Latest release: $release_tag"
+
+            assets=$(echo "$releases_response" | grep -o '"name": "meta-[^"]*"' | cut -d'"' -f4)
+            if [ -z "$assets" ]; then
+              echo "Error: No meta-* assets found in release $release_tag"
+              echo "Expected assets like: meta-$repo-darwin-arm64.tar.gz"
+              exit 1
+            fi
+
+            echo "Found assets:"
+            echo "$assets"
+            echo "✓ Release has correctly named assets"
+
+            echo ""
+            echo "✅ Plugin $plugin_file validated successfully"
+          done
+
+      - name: Check for conflicts
+        run: |
+          # Check if plugin name conflicts with existing plugins
+          for plugin_file in $(cat changed_plugins.txt); do
+            plugin_name=$(basename "$plugin_file")
+
+            # Count occurrences of this plugin name
+            count=$(find plugins -type f -name "$plugin_name" | wc -l)
+            if [ "$count" -gt 1 ]; then
+              echo "Error: Plugin name '$plugin_name' already exists"
+              exit 1
+            fi
+          done
+          echo "✓ No naming conflicts"
+
+      - name: Summary
+        run: |
+          echo "🎉 All validations passed!"
+          echo ""
+          echo "Changed plugins:"
+          cat changed_plugins.txt
+          echo ""
+          echo "Once this PR is merged, users can install with:"
+          for plugin_file in $(cat changed_plugins.txt); do
+            plugin_name=$(basename "$plugin_file")
+            echo "  meta plugin install $plugin_name"
+          done
