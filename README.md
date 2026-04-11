@@ -1,6 +1,6 @@
 # meta-plugins
 
-Official plugin registry for [meta](https://github.com/harmony-labs/meta).
+Official plugin registry for [meta](https://github.com/gitkb/meta).
 
 ## What is this?
 
@@ -37,7 +37,7 @@ meta plugin search <query>
 
 ### Requirements
 
-1. Your plugin must follow [GitHub Releases naming conventions](https://github.com/harmony-labs/meta/blob/main/docs/plugin-distribution.md#github-releases)
+1. Your plugin must follow [GitHub Releases naming conventions](https://github.com/gitkb/meta/blob/main/docs/plugin-distribution.md#github-releases)
 2. Release assets must be named: `meta-{name}-{platform}.tar.gz`
 3. Supported platforms: `darwin-arm64`, `darwin-x64`, `linux-x64`, `linux-arm64`, `windows-x64`
 4. Your plugin must respond to `--meta-plugin-info` and return valid JSON
@@ -81,6 +81,6 @@ The `.github/workflows/validate-plugin.yml` workflow automatically validates:
 
 ## Support
 
-- [Documentation](https://github.com/harmony-labs/meta)
-- [Report issues](https://github.com/harmony-labs/meta/issues)
-- [Plugin development guide](https://github.com/harmony-labs/meta/blob/main/docs/plugins.md)
+- [Documentation](https://github.com/gitkb/meta)
+- [Report issues](https://github.com/gitkb/meta/issues)
+- [Plugin development guide](https://github.com/gitkb/meta/blob/main/docs/plugins.md)

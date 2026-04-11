@@ -4,7 +4,7 @@ Thank you for contributing a plugin to the meta registry!
 
 ## Before You Submit
 
-1. **Create your plugin** following the [plugin development guide](https://github.com/harmony-labs/meta/blob/main/docs/plugins.md)
+1. **Create your plugin** following the [plugin development guide](https://github.com/gitkb/meta/blob/main/docs/plugins.md)
 2. **Publish GitHub releases** with platform-specific binaries
 3. **Test locally** with `meta plugin install user/your-plugin`
 
@@ -75,7 +75,7 @@ git push origin main
 
 ### 5. Create Pull Request
 
-- Go to https://github.com/harmony-labs/meta-plugins
+- Go to https://github.com/gitkb/meta-plugins
 - Click "New pull request"
 - Choose your fork and branch
 - Title: "Add {plugin-name} plugin"
@@ -110,6 +110,6 @@ meta plugin install your-plugin
 
 ## Questions?
 
-- [Open an issue](https://github.com/harmony-labs/meta/issues)
-- [Check the docs](https://github.com/harmony-labs/meta)
-- [Plugin development guide](https://github.com/harmony-labs/meta/blob/main/docs/plugins.md)
+- [Open an issue](https://github.com/gitkb/meta/issues)
+- [Check the docs](https://github.com/gitkb/meta)
+- [Plugin development guide](https://github.com/gitkb/meta/blob/main/docs/plugins.md)
